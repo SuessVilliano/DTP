@@ -1,35 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 30
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const symbol = searchParams.get('symbol') || 'BTCUSDT'
-  const interval = searchParams.get('interval') || '1m'
-  const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 1000)
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const symbol = (searchParams.get('symbol') || 'BTCUSDT').toUpperCase()
+  const interval = searchParams.get('interval') || '1h'
+  const limit = Math.min(Number(searchParams.get('limit') || '100'), 500)
 
   try {
-    const binanceUrl = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`
-    const res = await fetch(binanceUrl, { headers: { 'User-Agent': 'DTP/1.0' }, cache: 'no-store' })
+    const res = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+      { next: { revalidate: 30 } }
+    )
+    if (!res.ok) throw new Error(`Binance ${res.status}`)
+    const raw: any[][] = await res.json()
 
-    if (!res.ok) {
-      console.error('[binance proxy]', res.status)
-      return NextResponse.json({ error: `Binance API error: ${res.status}` }, { status: res.status })
-    }
-
-    const data = await res.json()
-    const ohlc = data.map((k: (string | number)[]) => ({
-      t: Number(k[0]),
-      o: parseFloat(k[1] as string),
-      h: parseFloat(k[2] as string),
-      l: parseFloat(k[3] as string),
-      c: parseFloat(k[4] as string),
-      v: parseFloat(k[5] as string),
+    const candles = raw.map(k => ({
+      t: k[0],          // open time ms
+      o: parseFloat(k[1]),
+      h: parseFloat(k[2]),
+      l: parseFloat(k[3]),
+      c: parseFloat(k[4]),
+      v: parseFloat(k[5]),
+      tc: k[6],         // close time ms
     }))
 
-    return NextResponse.json(ohlc, { headers: { 'Cache-Control': 'no-store, max-age=0' } })
-  } catch (error) {
-    console.error('[binance proxy]', error)
-    return NextResponse.json({ error: 'Failed to fetch market data' }, { status: 500 })
+    return NextResponse.json(candles, {
+      headers: { 'Cache-Control': 's-maxage=30, stale-while-revalidate=60' },
+    })
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: 'Market data temporarily unavailable', detail: err.message },
+      { status: 503 }
+    )
   }
 }
