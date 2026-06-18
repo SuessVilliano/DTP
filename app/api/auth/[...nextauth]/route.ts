@@ -1,13 +1,14 @@
 import NextAuth, { AuthOptions } from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+)
 
 export const authOptions: AuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
     CredentialsProvider({
       name: 'Email',
       credentials: {
@@ -17,13 +18,35 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        // TODO: Replace with real DB lookup + bcrypt compare
-        // Placeholder: accept any credentials in dev
-        if (process.env.NODE_ENV === 'development') {
-          return { id: '1', email: credentials.email, name: 'dev-user', role: 'free' }
-        }
+        try {
+          // Sign in with Supabase Auth to verify credentials
+          const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+            email: credentials.email,
+            password: credentials.password,
+          })
 
-        return null
+          if (error || !data.user) {
+            console.error('[nextauth] Supabase signin error:', error?.message)
+            return null
+          }
+
+          // Fetch profile from public.users table
+          const { data: profile } = await supabaseAdmin
+            .from('users')
+            .select('id, email, username, role')
+            .eq('id', data.user.id)
+            .single()
+
+          return {
+            id: data.user.id,
+            email: data.user.email ?? credentials.email,
+            name: profile?.username || data.user.user_metadata?.username || credentials.email.split('@')[0],
+            role: profile?.role || 'free',
+          }
+        } catch (err) {
+          console.error('[nextauth] authorize error:', err)
+          return null
+        }
       },
     }),
   ],
