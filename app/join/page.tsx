@@ -1,218 +1,180 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
+'use client'
+
 import { Navbar } from '@/components/Navbar'
-import { TickerTape } from '@/components/TickerTape'
+import { BottomNav } from '@/components/BottomNav'
+import Link from 'next/link'
 
-export const metadata: Metadata = {
-  title: 'Membership — Join DTP',
-  description: 'Three tiers of access. Pay with DTP tokens, SOL, or USDC.',
-}
-
-const TIERS = [
+const PLANS = [
   {
-    id: 'free',
-    name: 'Free Trader',
-    emoji: '📊',
-    priceUSD: 0,
-    priceCrypto: 'Free',
-    color: '#A0A0B0',
-    borderColor: '#1E1E30',
-    badge: null,
-    features: [
-      'Age-verified entry',
-      'Teaser clips (first 60 seconds)',
-      'Live ticker tape',
-      'Basic markets page',
-      'ExoClick ads (removed at Bull+)',
-    ],
-    notIncluded: [
-      'Full video access',
-      'HD streaming',
-      'Creator DMs',
-      'Live sessions',
-      'Ad-free browsing',
-    ],
-    cta: 'Start Free',
-    ctaHref: '/register',
-    ctaStyle: 'btn-ghost',
+    name: 'Free',
+    price: 0,
+    color: '#505065',
+    perks: ['Browse all public profiles', 'Basic market data', 'Limited messages', 'Demo mode access'],
   },
   {
-    id: 'bull',
-    name: 'Bull',
-    emoji: '🐂',
-    priceUSD: 29,
-    priceCrypto: '1,000 DTP or 29 USDC/mo',
+    name: 'Retail',
+    price: 9.99,
     color: '#00E5CC',
-    borderColor: '#00E5CC',
-    badge: 'MOST POPULAR',
-    features: [
-      'Everything in Free Trader',
-      'Full video library access',
-      'Ad-free browsing',
-      'Live trading room access',
-      'Basic creator chat',
-      'DTP token holder benefits',
-      'Pay with DTP token or USDC (x402)',
-    ],
-    notIncluded: [
-      'Creator DMs',
-      'Exclusive Whale content',
-      'Live session access',
-    ],
-    cta: 'Get Bull Access',
-    ctaHref: '/register?tier=bull',
-    ctaStyle: 'btn-cyan',
+    perks: ['Everything in Free', 'Full creator access', 'Unlimited messages', 'Priority DMs', '5% tip bonus'],
+    popular: true,
   },
   {
-    id: 'whale',
     name: 'Whale',
-    emoji: '🐋',
-    priceUSD: 99,
-    priceCrypto: '10,000 DTP or 99 USDC/mo',
+    price: 99.99,
     color: '#FFD700',
-    borderColor: '#FFD700',
-    badge: 'PREMIUM',
-    features: [
-      'Everything in Bull',
-      'Private creator DMs',
-      'Exclusive Whale-only content',
-      'Live session full access',
-      'Priority chat in live rooms',
-      'NFT member badge (Solana)',
-      'Early access to new drops',
-      'Revenue sharing (via DTP token)',
-    ],
-    notIncluded: [],
-    cta: 'Become a Whale',
-    ctaHref: '/register?tier=whale',
-    ctaStyle: 'btn-gold',
+    perks: ['Everything in Retail', 'PPV content unlocked', 'Monthly 1-on-1 calls', 'VIP badge', '20% tip bonus'],
   },
 ]
 
 const PAYMENT_METHODS = [
-  { icon: '⚡', name: 'TipLink', description: 'Instant SOL — no wallet setup needed', color: '#00E5CC' },
-  { icon: '💎', name: 'USDC via x402', description: 'Pay-per-second streaming (Coinbase Base)', color: '#2775CA' },
-  { icon: '₿', name: '100+ Cryptos', description: 'BTC, ETH, SOL, USDT, and more via NOWPayments', color: '#F7931A' },
-  { icon: '🪙', name: 'DTP Token', description: 'Native Solana token — hold to unlock tiers', color: '#9945FF' },
+  {
+    icon: '💳',
+    title: 'Credit Card',
+    subtitle: 'via trusted platforms',
+    color: '#6C5CE7',
+    desc: 'Subscribe and pay via SextPanther, Fanvue, LoyalFans, ManyVids, or NiteFlirt. All major credit cards accepted. DTP earns a small affiliate commission.',
+    tags: ['SextPanther', 'Fanvue', 'LoyalFans', 'ManyVids', 'NiteFlirt'],
+    cta: 'Browse Creators',
+    href: '/explore',
+  },
+  {
+    icon: '⧆',
+    title: 'Crypto',
+    subtitle: 'SOL · USDC',
+    color: '#00E5CC',
+    desc: 'Send SOL or USDC directly from your Phantom or Solflare wallet. Instant, low-fee, non-custodial — no KYC required.',
+    tags: ['Phantom Wallet', 'Solflare', 'SOL', 'USDC'],
+    cta: 'Learn More',
+    href: '/token',
+  },
+  {
+    icon: '🪙',
+    title: 'DTP Token',
+    subtitle: 'coming soon',
+    color: '#FFD700',
+    desc: 'Our native token. Stake for premium access, earn revenue share, and participate in platform governance. Launching on Solana.',
+    tags: ['Staking', 'Revenue Share', 'Governance', 'XP Rewards'],
+    cta: null,
+    href: '/token',
+    soon: true,
+  },
 ]
 
 export default function JoinPage() {
   return (
-    <div className="min-h-screen bg-[#0A0A0F]">
+    <div className="min-h-screen bg-[#0A0A0F] pb-20">
       <Navbar />
-      <TickerTape />
+      <div className="max-w-4xl mx-auto px-4 py-8">
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-black text-white mb-3">
-            Choose Your <span className="text-[#00E5CC]">Position</span>
-          </h1>
-          <p className="text-[#A0A0B0] text-lg max-w-xl mx-auto">
-            Three tiers. Pay with crypto. No bank needed. No questions asked.
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-black text-white mb-3">Join DayTraderPorn</h1>
+          <p className="text-[#A0A0B0] max-w-lg mx-auto text-sm">
+            Choose your plan. Pay how you want — credit card through our partner platforms, or directly with crypto.
           </p>
         </div>
 
-        {/* Tier cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {TIERS.map((tier) => (
+        {/* Plans */}
+        <div className="grid md:grid-cols-3 gap-4 mb-14">
+          {PLANS.map(plan => (
             <div
-              key={tier.id}
-              className={`relative flex flex-col rounded-2xl border-2 bg-[#12121A] overflow-hidden transition-transform hover:-translate-y-1 ${
-                tier.id === 'bull' ? 'md:-mt-4 md:mb-4' : ''
+              key={plan.name}
+              className={`bg-[#12121A] rounded-2xl border p-6 flex flex-col relative ${
+                plan.popular ? 'ring-1 ring-[#00E5CC]/60' : ''
               }`}
-              style={{ borderColor: tier.borderColor }}
+              style={{ borderColor: plan.color + '30' }}
             >
-              {tier.badge && (
+              {plan.popular && (
                 <div
-                  className="absolute top-0 left-0 right-0 py-1.5 text-center text-xs font-bold tracking-wider text-[#0A0A0F]"
-                  style={{ background: tier.color }}
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-black px-3 py-1 rounded-full text-[#0A0A0F]"
+                  style={{ background: '#00E5CC' }}
                 >
-                  {tier.badge}
+                  Most Popular
                 </div>
               )}
-
-              <div className={`p-6 ${tier.badge ? 'pt-10' : ''}`}>
-                <div className="text-4xl mb-3">{tier.emoji}</div>
-                <h2 className="text-2xl font-black text-white mb-1">{tier.name}</h2>
-                <div className="mb-2">
-                  <span className="text-3xl font-black" style={{ color: tier.color }}>
-                    {tier.priceUSD === 0 ? 'Free' : `$${tier.priceUSD}`}
-                  </span>
-                  {tier.priceUSD > 0 && (
-                    <span className="text-[#505065] text-sm">/mo</span>
-                  )}
-                </div>
-                <p className="text-xs text-[#505065] font-mono mb-5">{tier.priceCrypto}</p>
-
-                <Link
-                  href={tier.ctaHref}
-                  className={`btn ${tier.ctaStyle} w-full text-center mb-6`}
-                >
-                  {tier.cta}
-                </Link>
-
-                <div className="space-y-2">
-                  {tier.features.map((f) => (
-                    <div key={f} className="flex items-start gap-2 text-sm">
-                      <span className="text-[#00FF88] mt-0.5 flex-shrink-0">✓</span>
-                      <span className="text-[#A0A0B0]">{f}</span>
-                    </div>
-                  ))}
-                  {tier.notIncluded.map((f) => (
-                    <div key={f} className="flex items-start gap-2 text-sm">
-                      <span className="text-[#505065] mt-0.5 flex-shrink-0">✗</span>
-                      <span className="text-[#505065]">{f}</span>
-                    </div>
-                  ))}
+              <div className="mb-5">
+                <p className="text-xs font-black mb-1" style={{ color: plan.color }}>{plan.name}</p>
+                <div className="text-2xl font-black text-white">
+                  {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                  {plan.price > 0 && <span className="text-sm font-normal text-[#505065]">/mo</span>}
                 </div>
               </div>
+              <ul className="space-y-2 mb-6 flex-1">
+                {plan.perks.map(perk => (
+                  <li key={perk} className="text-xs text-[#A0A0B0] flex items-start gap-2">
+                    <span style={{ color: plan.color }} className="mt-0.5 shrink-0">✓</span>
+                    {perk}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={plan.price === 0 ? '/register' : `/register?plan=${plan.name.toLowerCase()}`}
+                className="block w-full py-2.5 rounded-xl text-sm font-black text-center transition-all hover:opacity-90"
+                style={{
+                  background: `linear-gradient(135deg,${plan.color},${plan.color}BB)`,
+                  color: plan.price === 0 ? '#A0A0B0' : '#0A0A0F',
+                }}
+              >
+                {plan.price === 0 ? 'Sign Up Free' : `Get ${plan.name}`}
+              </Link>
             </div>
           ))}
         </div>
 
         {/* Payment methods */}
-        <div className="bg-[#12121A] border border-[#1E1E30] rounded-2xl p-6 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">
-            Pay with anything. Stay anonymous.
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {PAYMENT_METHODS.map((pm) => (
+        <div className="mb-8">
+          <h2 className="text-lg font-black text-white mb-2">How Can I Pay?</h2>
+          <p className="text-sm text-[#505065] mb-6">Three options. Use whichever is easiest for you.</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            {PAYMENT_METHODS.map(m => (
               <div
-                key={pm.name}
-                className="bg-[#1A1A26] border border-[#1E1E30] rounded-xl p-4 text-center"
+                key={m.title}
+                className={`bg-[#12121A] rounded-2xl border p-5 flex flex-col ${m.soon ? 'opacity-70' : ''}`}
+                style={{ borderColor: m.color + '25' }}
               >
-                <div className="text-3xl mb-2">{pm.icon}</div>
-                <div className="font-bold text-sm text-white mb-1">{pm.name}</div>
-                <div className="text-xs text-[#505065]">{pm.description}</div>
+                {m.soon && (
+                  <span
+                    className="self-start text-[10px] font-black px-2 py-0.5 rounded-full mb-3"
+                    style={{ background: m.color + '20', color: m.color }}
+                  >
+                    Coming Soon
+                  </span>
+                )}
+                <div className="text-3xl mb-3">{m.icon}</div>
+                <p className="text-sm font-black text-white">{m.title}</p>
+                <p className="text-xs text-[#505065] mb-3">{m.subtitle}</p>
+                <p className="text-xs text-[#A0A0B0] leading-relaxed mb-4 flex-1">{m.desc}</p>
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {m.tags.map(tag => (
+                    <span
+                      key={tag}
+                      className="text-[10px] px-2 py-0.5 rounded-full border"
+                      style={{ borderColor: m.color + '30', color: m.color }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                {!m.soon && (
+                  <Link
+                    href={m.href!}
+                    className="block text-xs font-black text-center py-2 rounded-xl transition-all hover:opacity-80"
+                    style={{ background: m.color + '18', color: m.color, border: `1px solid ${m.color}25` }}
+                  >
+                    {m.cta} →
+                  </Link>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* DTP Token CTA */}
-        <div
-          className="rounded-2xl p-6 text-center"
-          style={{ background: 'linear-gradient(135deg, #12121A 0%, #1A1A26 100%)', border: '1px solid #FFD70033' }}
-        >
-          <div className="text-4xl mb-3">🪙</div>
-          <h3 className="text-xl font-bold text-white mb-2">
-            Unlock tiers by holding <span className="text-[#FFD700]">DTP tokens</span>
-          </h3>
-          <p className="text-[#A0A0B0] text-sm max-w-md mx-auto mb-4">
-            Hold 1,000 DTP tokens to unlock Bull tier automatically. Hold 10,000 for Whale.
-            No monthly payments — just hold.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Link href="/token" className="btn btn-gold">
-              Learn about DTP Token →
-            </Link>
-            <Link href="/register" className="btn btn-ghost">
-              Connect Wallet
-            </Link>
-          </div>
-        </div>
+        <p className="text-center text-xs text-[#505065]">
+          Already have an account?{' '}
+          <Link href="/login" className="text-[#00E5CC] hover:underline">Sign in</Link>
+        </p>
       </div>
+      <BottomNav />
     </div>
   )
 }
