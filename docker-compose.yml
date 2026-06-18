@@ -1,0 +1,83 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dtp-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
+      - NOWPAYMENTS_API_KEY=${NOWPAYMENTS_API_KEY}
+      - NOWPAYMENTS_IPN_SECRET=${NOWPAYMENTS_IPN_SECRET}
+      - TIPLINK_API_KEY=${TIPLINK_API_KEY}
+      - NEXT_PUBLIC_SOLANA_RPC_URL=${NEXT_PUBLIC_SOLANA_RPC_URL}
+      - NEXT_PUBLIC_DTP_TOKEN_MINT=${NEXT_PUBLIC_DTP_TOKEN_MINT}
+      - NEXT_PUBLIC_EXOCLICK_PUBLISHER_ID=${NEXT_PUBLIC_EXOCLICK_PUBLISHER_ID}
+      - NEXT_PUBLIC_EXOCLICK_ZONE_300x250=${NEXT_PUBLIC_EXOCLICK_ZONE_300x250}
+      - NEXT_PUBLIC_EXOCLICK_ZONE_728x90=${NEXT_PUBLIC_EXOCLICK_ZONE_728x90}
+      - NEXT_PUBLIC_EXOCLICK_ZONE_NATIVE=${NEXT_PUBLIC_EXOCLICK_ZONE_NATIVE}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - dtp-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dtp.rule=Host(`daytraderporn.com`)"
+      - "traefik.http.routers.dtp.tls=true"
+      - "traefik.http.routers.dtp.tls.certresolver=letsencrypt"
+
+  redis:
+    image: redis:7-alpine
+    container_name: dtp-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-dtpredis} --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dtp-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: dtp-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - dtp-network
+
+volumes:
+  redis_data:
+
+networks:
+  dtp-network:
+    driver: bridge
