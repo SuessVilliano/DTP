@@ -1,61 +1,106 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { useTokenTier, TierBadge } from './TokenGate'
+import Link from 'next/link'
 
 export function Navbar() {
-  const { data: session } = useSession()
-  const { tier } = useTokenTier()
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { data: session, status } = useSession()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
-  const navLinks = [
-    { href: '/home', label: 'Feed' },
-    { href: '/markets', label: '📈 Markets' },
-    { href: '/join', label: 'Membership' },
-    { href: '/token', label: 'DTP Token' },
-    { href: '/docs', label: 'Docs' },
-    { href: '/faq', label: 'FAQ' },
-    { href: '/support', label: 'Support' },
-  ]
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   return (
-    <nav className="sticky top-0 z-40 bg-[#0A0A0F]/90 backdrop-blur-md border-b border-[#1E1E30]">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-        <Link href="/home" className="flex-shrink-0">
-          <span className="font-black text-xl tracking-tight"><span className="text-[#00E5CC]">D</span><span className="text-white">T</span><span className="text-[#FFD700]">P</span></span>
+    <nav className="sticky top-0 z-40 bg-[#0A0A0F]/90 backdrop-blur-xl border-b border-[#1E1E30]">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/home" className="flex items-center gap-2">
+          <span className="text-lg font-black" style={{ background: 'linear-gradient(135deg,#00E5CC,#FFD700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>DTP</span>
+          <span className="hidden sm:block text-xs text-[#505065] font-medium">DayTraderPorn</span>
         </Link>
+
+        {/* Center nav — desktop only */}
         <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${pathname === link.href ? 'text-[#00E5CC] bg-[#00E5CC11]' : 'text-[#A0A0B0] hover:text-white hover:bg-[#1A1A26]'}`}>{link.label}</Link>
+          {([['Explore', '/explore'], ['Markets', '/markets']] as [string, string][]).map(([label, href]) => (
+            <Link key={label} href={href} className="px-3 py-1.5 text-xs text-[#505065] hover:text-white transition-colors rounded-lg hover:bg-[#12121A]">
+              {label}
+            </Link>
           ))}
         </div>
-        <div className="flex items-center gap-3">
-          <TierBadge tier={tier} />
-          <div className="hidden sm:block"><WalletMultiButton className="!text-xs !py-1.5 !px-3 !h-auto !bg-[#1A1A26] !border !border-[#1E1E30] hover:!border-[#00E5CC33] !text-[#A0A0B0] hover:!text-white !rounded-lg !font-medium transition-all" /></div>
-          {session ? (
-            <div className="flex items-center gap-2">
-              {session.user?.image && <img src={session.user.image} alt="" className="w-8 h-8 rounded-full border border-[#1E1E30]" />}
-              <button onClick={() => signOut()} className="hidden sm:block text-xs text-[#505065] hover:text-[#A0A0B0] transition-colors">Sign out</button>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          {status === 'loading' ? (
+            <div className="w-8 h-8 rounded-full bg-[#1E1E30] animate-pulse" />
+          ) : session ? (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                className="flex items-center gap-2 bg-[#12121A] border border-[#1E1E30] rounded-full px-2.5 py-1.5 hover:border-[#00E5CC]/40 transition-colors"
+              >
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#00E5CC] to-[#0099AA] flex items-center justify-center text-xs font-black text-[#0A0A0F]">
+                  {(session.user?.name?.[0] || session.user?.email?.[0] || 'U').toUpperCase()}
+                </div>
+                <span className="hidden sm:block text-xs text-white font-medium max-w-[80px] truncate">
+                  {session.user?.name || session.user?.email?.split('@')[0]}
+                </span>
+                <span className="text-[#505065] text-xs">{menuOpen ? '▲' : '▼'}</span>
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[#12121A] border border-[#1E1E30] rounded-xl overflow-hidden shadow-2xl z-50">
+                  <div className="px-4 py-3 border-b border-[#1E1E30]">
+                    <p className="text-xs font-medium text-white truncate">{session.user?.name || 'User'}</p>
+                    <p className="text-xs text-[#505065] truncate">{session.user?.email}</p>
+                  </div>
+                  {([
+                    ['Dashboard', '/dashboard'],
+                    ['My Profile', `/creator/${session.user?.name || 'me'}`],
+                    ['Messages', '/messages'],
+                    ['Notifications', '/notifications'],
+                  ] as [string, string][]).map(([label, href]) => (
+                    <Link
+                      key={label}
+                      href={href}
+                      className="block px-4 py-2.5 text-sm text-[#A0A0B0] hover:text-white hover:bg-[#1E1E30] transition-colors"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                  <div className="border-t border-[#1E1E30]" />
+                  <button
+                    onClick={() => { signOut({ callbackUrl: '/' }); setMenuOpen(false) }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-[#FF3366] hover:bg-[#1E1E30] transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <Link href="/login" className="btn btn-outline text-sm py-1.5 px-4">Login</Link>
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="text-xs text-[#A0A0B0] hover:text-white transition-colors px-3 py-1.5">Sign in</Link>
+              <Link
+                href="/register"
+                className="text-xs font-black text-[#0A0A0F] px-4 py-2 rounded-full transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg,#00E5CC,#0099AA)' }}
+              >
+                Join Free
+              </Link>
+            </div>
           )}
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-[#A0A0B0] p-1">
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{mobileOpen ? <path d="M18 6L6 18M6 6l12 12"/> : <path d="M3 12h18M3 6h18M3 18h18"/>}</svg>
-          </button>
         </div>
       </div>
-      {mobileOpen && (
-        <div className="md:hidden bg-[#12121A] border-t border-[#1E1E30] px-4 py-3 space-y-1">
-          {navLinks.map((link) => <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className={`block px-3 py-2 rounded-md text-sm transition-colors ${pathname === link.href ? 'text-[#00E5CC] bg-[#00E5CC11]' : 'text-[#A0A0B0] hover:text-white hover:bg-[#1A1A26]'}`}>{link.label}</Link>)}
-          <div className="pt-2 border-t border-[#1E1E30]"><WalletMultiButton className="!w-full !text-sm !py-2 !bg-[#1A1A26] !border !border-[#1E1E30] !text-[#A0A0B0] !rounded-lg" /></div>
-        </div>
-      )}
     </nav>
   )
 }
