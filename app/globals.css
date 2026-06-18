@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #0A0A0F;
+  --color-surface: #12121A;
+  --color-border: #1E1E30;
+  --color-text-muted: #A0A0B0;
+  --color-accent: #00E5CC;
+  --color-gold: #FFD700;
+  --color-danger: #FF3366;
+}
+
+* { box-sizing: border-box; }
+html { overflow-x: hidden; }
+body {
+  background: var(--color-bg);
+  color: #fff;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: hidden;
+  padding-bottom: 56px;
+}
+@media (min-width: 768px) { body { padding-bottom: 0; } }
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-scroll { display: inline-flex; animation: ticker-scroll 40s linear infinite; width: max-content; }
+.ticker-scroll:hover { animation-play-state: paused; }
+
+.btn { @apply inline-flex items-center justify-center gap-2 font-bold rounded-xl transition-all cursor-pointer select-none; min-height: 44px; padding: 0.625rem 1.25rem; }
+.btn-primary { background: linear-gradient(135deg, #00E5CC, #0099AA); color: #0A0A0F; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-gold { background: linear-gradient(135deg, #FFD700, #FFA500); color: #0A0A0F; }
+.btn-gold:hover { filter: brightness(1.1); }
+.btn-ghost { @apply bg-transparent border border-[#1E1E30] text-[#A0A0B0]; }
+.btn-ghost:hover { @apply border-[#00E5CC]/30 text-white; }
+.card { @apply bg-[#12121A] border border-[#1E1E30] rounded-xl overflow-hidden; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #2A2A40; }
+
+/* Safe area for iPhone notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+  @media (min-width: 768px) { body { padding-bottom: env(safe-area-inset-bottom); } }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
