@@ -18,6 +18,9 @@ export function Navbar() {
     { href: '/markets', label: '📈 Markets' },
     { href: '/join', label: 'Membership' },
     { href: '/token', label: 'DTP Token' },
+    { href: '/docs', label: 'Docs' },
+    { href: '/faq', label: 'FAQ' },
+    { href: '/support', label: 'Support' },
   ]
 
   return (
